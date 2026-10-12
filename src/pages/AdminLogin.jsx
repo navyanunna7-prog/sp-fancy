@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { Lock, Mail, ShieldCheck } from "lucide-react";
 
 function AdminLogin() {
@@ -19,13 +19,12 @@ function AdminLogin() {
       setLoading(true);
       setError("");
 
-      const response = await axios.post(
-        "http://localhost:5000/api/admin/login",
-        {
-          email,
-          password,
-        }
-      );
+  
+const response = await api.post("/admin/login", {
+  email,
+  password,
+});
+
 
       localStorage.setItem(
         "spFancyAdminToken",
