@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import {
   User,
   Mail,
@@ -48,12 +48,12 @@ function Register() {
       setLoading(true);
       setError("");
 
-      await axios.post("http://localhost:5000/api/auth/register", {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password,
-      });
+      await api.post("/auth/register", {
+  fullName: formData.fullName,
+  email: formData.email,
+  phone: formData.phone,
+  password: formData.password,
+});
 
       alert("Registration successful! 🎉");
 
