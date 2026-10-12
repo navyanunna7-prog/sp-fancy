@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import {
   ArrowLeft,
   Heart,
@@ -38,9 +38,7 @@ function ProductDetails() {
         setLoading(true);
         setError("");
 
-        const response = await axios.get(
-          `http://localhost:5000/api/products/${id}`
-        );
+       const response = await api.get(`/products/${id}`);
 
         const data = response.data;
 
