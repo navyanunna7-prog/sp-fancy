@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import {
   Heart,
   ShoppingBag,
@@ -53,9 +53,7 @@ function Shop() {
         setLoading(true);
         setError("");
 
-        const response = await axios.get(
-          "http://localhost:5000/api/products"
-        );
+      const response = await api.get("/products");
 
         const formattedProducts = response.data.map(
           (product) => ({
