@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import {
   Package,
   ChevronDown,
@@ -14,8 +14,6 @@ import {
   Clock,
 } from "lucide-react";
 import "./Orders.css";
-
-const API_URL = "http://localhost:5000/api/orders";
 
 const formatDate = (date) => {
   if (!date) return "Date unavailable";
@@ -87,10 +85,10 @@ function Orders() {
       }
 
       const response = await axios.get(API_URL, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
 
       const result = response.data;
 
