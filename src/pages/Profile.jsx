@@ -11,9 +11,8 @@ import {
   Pencil,
   X,
 } from "lucide-react";
+import api from "./api";
 import "./Profile.css";
-
-const API_URL = "http://localhost:5000/api/profile";
 
 const emptyPassword = {
   currentPassword: "",
@@ -37,7 +36,6 @@ function Profile() {
   });
 
   const [passwordData, setPasswordData] = useState(emptyPassword);
-
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -67,19 +65,13 @@ function Profile() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_URL}/me`, {
+      const response = await api.get("/profile/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to load profile");
-      }
-
-      const user = data.user;
+      const user = response.data.user;
 
       const details = {
         fullName: user.fullName || "",
@@ -90,7 +82,9 @@ function Profile() {
       setProfile(details);
       setFormData(details);
     } catch (err) {
-      setError(err.message || "Failed to load profile");
+      setError(
+        err.response?.data?.message || "Failed to load profile"
+      );
     } finally {
       setLoading(false);
     }
@@ -114,7 +108,6 @@ function Profile() {
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
     setMessage("");
 
@@ -128,26 +121,22 @@ function Profile() {
     try {
       setSaving(true);
 
-      const response = await fetch(`${API_URL}/me`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const response = await api.put(
+        "/profile/me",
+        {
           fullName: formData.fullName.trim(),
           email: formData.email.trim(),
           phone: formData.phone.trim(),
-        }),
-      });
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      const data = await response.json();
+      const updatedUser = response.data.user;
 
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update profile");
-      }
-
-      const updatedUser = data.user;
       const details = {
         fullName: updatedUser.fullName || "",
         email: updatedUser.email || "",
@@ -157,9 +146,10 @@ function Profile() {
       setProfile(details);
       setFormData(details);
       setEditing(false);
-      setMessage(data.message || "Profile updated successfully");
+      setMessage(
+        response.data.message || "Profile updated successfully"
+      );
 
-      // Keep saved customer details in sync if this key exists.
       try {
         const savedUser = localStorage.getItem("spFancyUser");
 
@@ -175,12 +165,14 @@ function Profile() {
           );
         }
       } catch {
-        // Profile update succeeded; cached user data is optional.
+        // Cached user data is optional.
       }
 
       window.dispatchEvent(new Event("spFancyProfileUpdated"));
     } catch (err) {
-      setError(err.message || "Failed to update profile");
+      setError(
+        err.response?.data?.message || "Failed to update profile"
+      );
     } finally {
       setSaving(false);
     }
@@ -197,7 +189,6 @@ function Profile() {
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-
     setPasswordError("");
     setPasswordMessage("");
 
@@ -239,28 +230,25 @@ function Profile() {
     try {
       setPasswordLoading(true);
 
-      const response = await fetch(`${API_URL}/change-password`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(passwordData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update password");
-      }
+      const response = await api.put(
+        "/profile/change-password",
+        passwordData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       setPasswordMessage(
-        data.message || "Password updated successfully"
+        response.data.message || "Password updated successfully"
       );
 
       setPasswordData({ ...emptyPassword });
     } catch (err) {
-      setPasswordError(err.message || "Failed to update password");
+      setPasswordError(
+        err.response?.data?.message || "Failed to update password"
+      );
     } finally {
       setPasswordLoading(false);
     }
@@ -316,7 +304,6 @@ function Profile() {
           <div className="profile-avatar">
             <UserRound size={36} />
           </div>
-
           <div>
             <h1>My Profile</h1>
             <p>Manage your SP Fancy account details</p>
@@ -446,7 +433,6 @@ function Profile() {
               <h2>Change Password</h2>
               <p>Keep your account secure</p>
             </div>
-
             <div className="password-icon">
               <LockKeyhole size={23} />
             </div>
@@ -467,9 +453,7 @@ function Profile() {
           <form onSubmit={handlePasswordChange}>
             <div className="profile-fields">
               <div className="profile-field">
-                <label htmlFor="currentPassword">
-                  Current Password
-                </label>
+                <label htmlFor="currentPassword">Current Password</label>
                 <input
                   className="password-input"
                   id="currentPassword"
@@ -528,9 +512,7 @@ function Profile() {
                 disabled={passwordLoading}
               >
                 <LockKeyhole size={17} />
-                {passwordLoading
-                  ? "Updating..."
-                  : "Update Password"}
+                {passwordLoading ? "Updating..." : "Update Password"}
               </button>
             </div>
           </form>
