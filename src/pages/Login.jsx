@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 function Login() {
@@ -32,13 +32,13 @@ function Login() {
       setLoading(true);
       setError("");
 
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        {
-          email: formData.email,
-          password: formData.password,
-        }
-      );
+     const response = await api.post(
+  "/auth/login",
+  {
+    email: formData.email,
+    password: formData.password,
+  }
+);
 
       // Save JWT token
       localStorage.setItem(
