@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api";
 import {
   Lock,
   MapPin,
@@ -113,16 +113,15 @@ function Checkout() {
       };
 
       // Send order with JWT token
-      const response = await axios.post(
-        "http://localhost:5000/api/orders",
-        orderData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+     const response = await api.post(
+  "/orders",
+  orderData,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
       const createdOrder =
         response.data.order;
 
