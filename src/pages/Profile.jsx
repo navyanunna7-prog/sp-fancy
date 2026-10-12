@@ -11,7 +11,8 @@ import {
   Pencil,
   X,
 } from "lucide-react";
-import api from "./api";
+
+import api from "../api";
 import "./Profile.css";
 
 const emptyPassword = {
