@@ -1,15 +1,9 @@
+
 import { useEffect, useState } from "react";
-import {
-  useNavigate,
-  useParams,
-} from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import AdminSidebar from "../components/AdminSidebar";
-import {
-  ArrowLeft,
-  ImagePlus,
-  Save,
-} from "lucide-react";
+import { ArrowLeft, ImagePlus, Save } from "lucide-react";
 
 function AdminEditProduct() {
   const { id } = useParams();
@@ -44,49 +38,37 @@ function AdminEditProduct() {
 
         setFormData({
           name: product.name || "",
-          category:
-            product.category || "jewellery",
+          category: product.category || "jewellery",
           price: product.price ?? "",
           oldPrice: product.oldPrice ?? "",
           image: product.image || "",
-          description:
-            product.description || "",
+          description: product.description || "",
           stock: product.stock ?? "",
-          featured:
-            product.featured || false,
+          featured: product.featured || false,
         });
       } catch (error) {
-        console.error(
-          "Fetch product error:",
-          error
-        );
-
-        setError(
-          "Unable to load product details."
-        );
+        console.error("Fetch product error:", error);
+        setError("Unable to load product details.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProduct();
+    if (id) {
+      fetchProduct();
+    } else {
+      setLoading(false);
+      setError("Product ID is missing.");
+    }
   }, [id]);
 
   const handleChange = (e) => {
-    const {
-      name,
-      value,
-      type,
-      checked,
-    } = e.target;
+    const { name, value, type, checked } = e.target;
 
-    setFormData({
-      ...formData,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : value,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
 
     setError("");
   };
@@ -98,7 +80,7 @@ function AdminEditProduct() {
       setSaving(true);
       setError("");
 
-      await axios.put
+      await axios.put(
         `https://sp-fancy-backend-1.onrender.com/api/products/${id}`,
         {
           name: formData.name.trim(),
@@ -108,8 +90,7 @@ function AdminEditProduct() {
             ? Number(formData.oldPrice)
             : null,
           image: formData.image.trim(),
-          description:
-            formData.description.trim(),
+          description: formData.description.trim(),
           stock: Number(formData.stock),
           featured: formData.featured,
         }
@@ -117,10 +98,7 @@ function AdminEditProduct() {
 
       navigate("/admin/products");
     } catch (error) {
-      console.error(
-        "Update product error:",
-        error
-      );
+      console.error("Update product error:", error);
 
       setError(
         error.response?.data?.message ||
@@ -134,57 +112,39 @@ function AdminEditProduct() {
   if (loading) {
     return (
       <div className="admin-layout">
-
         <AdminSidebar />
-
         <main className="admin-main">
-
           <div className="admin-loading">
             Loading product details...
           </div>
-
         </main>
-
       </div>
     );
   }
 
   return (
     <div className="admin-layout">
-
       <AdminSidebar />
 
       <main className="admin-main">
-
         <header className="admin-main-header">
-
           <div>
-
             <p className="section-label">
               SP FANCY • PRODUCTS
             </p>
-
             <h1>Edit Product</h1>
-
-            <p>
-              Update your product information.
-            </p>
-
+            <p>Update your product information.</p>
           </div>
 
           <button
             type="button"
             className="admin-back-btn"
-            onClick={() =>
-              navigate("/admin/products")
-            }
+            onClick={() => navigate("/admin/products")}
           >
             <ArrowLeft size={16} />
             BACK TO PRODUCTS
           </button>
-
         </header>
-
 
         {error && (
           <div className="admin-page-error">
@@ -192,41 +152,24 @@ function AdminEditProduct() {
           </div>
         )}
 
-
         <form
           className="admin-product-form"
           onSubmit={handleSubmit}
         >
-
           <div className="admin-form-title">
-
             <div className="admin-form-title-icon">
               <ImagePlus size={21} />
             </div>
 
             <div>
               <h2>Product Information</h2>
-
-              <p>
-                Update the details of this
-                product.
-              </p>
+              <p>Update the details of this product.</p>
             </div>
-
           </div>
 
-
           <div className="admin-form-grid">
-
-
-            {/* PRODUCT NAME */}
-
             <div className="admin-form-group full-width">
-
-              <label>
-                PRODUCT NAME
-              </label>
-
+              <label>PRODUCT NAME</label>
               <input
                 type="text"
                 name="name"
@@ -234,58 +177,27 @@ function AdminEditProduct() {
                 onChange={handleChange}
                 required
               />
-
             </div>
 
-
-            {/* CATEGORY */}
-
             <div className="admin-form-group">
-
-              <label>
-                CATEGORY
-              </label>
-
+              <label>CATEGORY</label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
                 required
               >
-
-                <option value="jewellery">
-                  Jewellery
-                </option>
-
-                <option value="slippers">
-                  Slippers
-                </option>
-
-                <option value="handbags">
-                  Handbags
-                </option>
-
-                <option value="accessories">
-                  Accessories
-                </option>
-
+                <option value="jewellery">Jewellery</option>
+                <option value="slippers">Slippers</option>
+                <option value="handbags">Handbags</option>
+                <option value="accessories">Accessories</option>
               </select>
-
             </div>
 
-
-            {/* PRICE */}
-
             <div className="admin-form-group">
-
-              <label>
-                PRICE
-              </label>
-
+              <label>PRICE</label>
               <div className="admin-input-prefix">
-
                 <span>₹</span>
-
                 <input
                   type="number"
                   name="price"
@@ -294,24 +206,13 @@ function AdminEditProduct() {
                   min="0"
                   required
                 />
-
               </div>
-
             </div>
 
-
-            {/* OLD PRICE */}
-
             <div className="admin-form-group">
-
-              <label>
-                OLD PRICE
-              </label>
-
+              <label>OLD PRICE</label>
               <div className="admin-input-prefix">
-
                 <span>₹</span>
-
                 <input
                   type="number"
                   name="oldPrice"
@@ -319,20 +220,11 @@ function AdminEditProduct() {
                   onChange={handleChange}
                   min="0"
                 />
-
               </div>
-
             </div>
 
-
-            {/* STOCK */}
-
             <div className="admin-form-group">
-
-              <label>
-                STOCK QUANTITY
-              </label>
-
+              <label>STOCK QUANTITY</label>
               <input
                 type="number"
                 name="stock"
@@ -341,18 +233,10 @@ function AdminEditProduct() {
                 min="0"
                 required
               />
-
             </div>
 
-
-            {/* IMAGE URL */}
-
             <div className="admin-form-group full-width">
-
-              <label>
-                PRODUCT IMAGE URL
-              </label>
-
+              <label>PRODUCT IMAGE URL</label>
               <input
                 type="url"
                 name="image"
@@ -360,72 +244,42 @@ function AdminEditProduct() {
                 onChange={handleChange}
                 required
               />
-
               <small className="admin-input-help">
-                Use a direct image URL for the
-                product photo.
+                Use a direct image URL for the product photo.
               </small>
-
             </div>
 
-
-            {/* DESCRIPTION */}
-
             <div className="admin-form-group full-width">
-
-              <label>
-                DESCRIPTION
-              </label>
-
+              <label>DESCRIPTION</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 rows="5"
               />
-
             </div>
 
-
-            {/* FEATURED */}
-
             <label className="admin-featured-checkbox">
-
               <input
                 type="checkbox"
                 name="featured"
                 checked={formData.featured}
                 onChange={handleChange}
               />
-
               <div>
-
-                <strong>
-                  Featured Product
-                </strong>
-
+                <strong>Featured Product</strong>
                 <span>
-                  Show this product in featured
-                  sections.
+                  Show this product in featured sections.
                 </span>
-
               </div>
-
             </label>
-
           </div>
 
-
-          {/* ACTIONS */}
-
           <div className="admin-form-actions">
-
             <button
               type="button"
               className="admin-cancel-btn"
-              onClick={() =>
-                navigate("/admin/products")
-              }
+              onClick={() => navigate("/admin/products")}
             >
               CANCEL
             </button>
@@ -435,21 +289,12 @@ function AdminEditProduct() {
               className="admin-save-btn"
               disabled={saving}
             >
-
               <Save size={16} />
-
-              {saving
-                ? "SAVING..."
-                : "SAVE CHANGES"}
-
+              {saving ? "SAVING..." : "SAVE CHANGES"}
             </button>
-
           </div>
-
         </form>
-
       </main>
-
     </div>
   );
 }
