@@ -84,12 +84,12 @@ function Orders() {
         return;
       }
 
-      const response = await axios.get(API_URL, {
+ 
+const response = await api.get("/orders/my-orders", {
   headers: {
     Authorization: `Bearer ${token}`,
   },
 });
-
       const result = response.data;
 
       const orderList = Array.isArray(result)
