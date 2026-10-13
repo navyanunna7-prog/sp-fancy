@@ -1,4 +1,3 @@
-```jsx
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -34,17 +33,19 @@ function AdminOrderDetails() {
   const getAdminToken = () =>
     localStorage.getItem("spFancyAdminToken");
 
-  const getErrorMessage = (err, fallback) => {
-    const status = err.response?.status;
-    const message =
-      err.response?.data?.message || err.message || fallback;
 
-    if (status) {
-      return `Error ${status}: ${message}`;
-    }
+const getErrorMessage = (err, fallback) => {
+  const status = err.response?.status;
+  const message =
+    err.response?.data?.message ||
+    err.message ||
+    fallback;
 
-    return message || fallback;
-  };
+  return status
+    ? "Error " + status + ": " + message
+    : message;
+};
+
 
   const fetchOrder = async () => {
     try {
@@ -465,4 +466,3 @@ function AdminOrderDetails() {
 }
 
 export default AdminOrderDetails;
-```
