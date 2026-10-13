@@ -31,8 +31,8 @@ function AdminCustomers() {
       }
 
       try {
-        const response = await axios.get(
-          "http://localhost:5000/api/admin/orders",
+       const response = await axios.get(
+  "https://sp-fancy-backend-1.onrender.com/api/admin/orders",
           {
             headers: {
               Authorization: `Bearer ${token}`,
