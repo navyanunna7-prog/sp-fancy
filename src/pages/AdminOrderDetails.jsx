@@ -1,3 +1,4 @@
+```jsx
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -17,6 +18,10 @@ import {
   Truck,
   XCircle,
 } from "lucide-react";
+
+const API_URL =
+  "https://sp-fancy-backend-1.onrender.com/api/admin/orders";
+
 function AdminOrderDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -26,23 +31,35 @@ function AdminOrderDetails() {
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState("");
 
+  const getAdminToken = () =>
+    localStorage.getItem("spFancyAdminToken");
+
+  const getErrorMessage = (err, fallback) => {
+    const status = err.response?.status;
+    const message =
+      err.response?.data?.message || err.message || fallback;
+
+    if (status) {
+      return `Error ${status}: ${message}`;
+    }
+
+    return message || fallback;
+  };
+
   const fetchOrder = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const token = localStorage.getItem(
-        "spFancyAdminToken"
-      );
+      const token = getAdminToken();
 
       if (!token) {
-        navigate("/admin/login");
+        navigate("/admin/login", { replace: true });
         return;
       }
 
       const response = await axios.get(
-        
-`https://sp-fancy-backend-1.onrender.com/api/admin/orders/${id}/status`,
+        `${API_URL}/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -51,29 +68,17 @@ function AdminOrderDetails() {
       );
 
       setOrder(response.data);
-    } catch (error) {
-      console.error(
-        "Fetch admin order error:",
-        error
-      );
+    } catch (err) {
+      console.error("Fetch admin order error:", err);
 
-      if (error.response?.status === 401) {
-        localStorage.removeItem(
-          "spFancyAdminToken"
-        );
-
-        localStorage.removeItem(
-          "spFancyAdmin"
-        );
-
-        navigate("/admin/login");
+      if (err.response?.status === 401) {
+        localStorage.removeItem("spFancyAdminToken");
+        localStorage.removeItem("spFancyAdmin");
+        navigate("/admin/login", { replace: true });
         return;
       }
 
-      setError(
-        error.response?.data?.message ||
-          "Unable to load order."
-      );
+      setError(getErrorMessage(err, "Unable to load order."));
     } finally {
       setLoading(false);
     }
@@ -88,13 +93,15 @@ function AdminOrderDetails() {
       setUpdating(true);
       setError("");
 
-      const token = localStorage.getItem(
-        "spFancyAdminToken"
-      );
+      const token = getAdminToken();
+
+      if (!token) {
+        navigate("/admin/login", { replace: true });
+        return;
+      }
 
       const response = await axios.put(
-        
-`https://sp-fancy-backend-1.onrender.com/api/admin/orders/${id}/status`,
+        `${API_URL}/${id}/status`,
         {
           orderStatus: newStatus,
         },
@@ -106,19 +113,19 @@ function AdminOrderDetails() {
       );
 
       setOrder(response.data.order);
+      alert(`Order status changed to ${newStatus}`);
+    } catch (err) {
+      console.error("Update status error:", err);
 
-      alert(
-        `Order status changed to ${newStatus}`
-      );
-    } catch (error) {
-      console.error(
-        "Update status error:",
-        error
-      );
+      if (err.response?.status === 401) {
+        localStorage.removeItem("spFancyAdminToken");
+        localStorage.removeItem("spFancyAdmin");
+        navigate("/admin/login", { replace: true });
+        return;
+      }
 
       setError(
-        error.response?.data?.message ||
-          "Unable to update order status."
+        getErrorMessage(err, "Unable to update order status.")
       );
     } finally {
       setUpdating(false);
@@ -126,27 +133,21 @@ function AdminOrderDetails() {
   };
 
   const formatDate = (date) => {
-    if (!date) {
-      return "N/A";
-    }
+    if (!date) return "N/A";
 
-    return new Date(date).toLocaleString(
-      "en-IN",
-      {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }
-    );
+    return new Date(date).toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   if (loading) {
     return (
       <div className="admin-layout">
         <AdminSidebar />
-
         <main className="admin-main">
           <div className="admin-loading">
             Loading order details...
@@ -160,7 +161,6 @@ function AdminOrderDetails() {
     return (
       <div className="admin-layout">
         <AdminSidebar />
-
         <main className="admin-main">
           <div className="admin-page-error">
             {error || "Order not found."}
@@ -168,9 +168,7 @@ function AdminOrderDetails() {
 
           <button
             className="admin-back-btn"
-            onClick={() =>
-              navigate("/admin/orders")
-            }
+            onClick={() => navigate("/admin/orders")}
           >
             <ArrowLeft size={16} />
             BACK TO ORDERS
@@ -184,64 +182,38 @@ function AdminOrderDetails() {
 
   return (
     <div className="admin-layout">
-
       <AdminSidebar />
 
       <main className="admin-main">
-
-        {/* HEADER */}
-
         <header className="admin-main-header">
-
           <div>
-            <p className="section-label">
-              SP FANCY • ORDERS
-            </p>
-
+            <p className="section-label">SP FANCY • ORDERS</p>
             <h1>Order Details</h1>
-
             <p>
               Order #
-              {order._id
-                .slice(-8)
-                .toUpperCase()}
+              {order._id.slice(-8).toUpperCase()}
             </p>
           </div>
 
           <button
             className="admin-back-btn"
-            onClick={() =>
-              navigate("/admin/orders")
-            }
+            onClick={() => navigate("/admin/orders")}
           >
             <ArrowLeft size={16} />
             BACK TO ORDERS
           </button>
-
         </header>
 
         {error && (
-          <div className="admin-page-error">
-            {error}
-          </div>
+          <div className="admin-page-error">{error}</div>
         )}
 
-        {/* STATUS MANAGEMENT */}
-
         <section className="admin-status-management">
-
           <div className="admin-status-heading">
-
             <div>
-              <p className="section-label">
-                ORDER STATUS
-              </p>
-
+              <p className="section-label">ORDER STATUS</p>
               <h2>
-                {status
-                  .charAt(0)
-                  .toUpperCase() +
-                  status.slice(1)}
+                {status.charAt(0).toUpperCase() + status.slice(1)}
               </h2>
             </div>
 
@@ -250,20 +222,13 @@ function AdminOrderDetails() {
             >
               {status.toUpperCase()}
             </div>
-
           </div>
 
           <div className="admin-status-actions">
-
             <button
               className="admin-status-btn confirm"
-              disabled={
-                updating ||
-                status !== "placed"
-              }
-              onClick={() =>
-                updateStatus("confirmed")
-              }
+              disabled={updating || status !== "placed"}
+              onClick={() => updateStatus("confirmed")}
             >
               <CheckCircle size={17} />
               CONFIRM ORDER
@@ -271,13 +236,8 @@ function AdminOrderDetails() {
 
             <button
               className="admin-status-btn ship"
-              disabled={
-                updating ||
-                status !== "confirmed"
-              }
-              onClick={() =>
-                updateStatus("shipped")
-              }
+              disabled={updating || status !== "confirmed"}
+              onClick={() => updateStatus("shipped")}
             >
               <Truck size={17} />
               MARK SHIPPED
@@ -285,13 +245,8 @@ function AdminOrderDetails() {
 
             <button
               className="admin-status-btn deliver"
-              disabled={
-                updating ||
-                status !== "shipped"
-              }
-              onClick={() =>
-                updateStatus("delivered")
-              }
+              disabled={updating || status !== "shipped"}
+              onClick={() => updateStatus("delivered")}
             >
               <CheckCircle size={17} />
               MARK DELIVERED
@@ -305,12 +260,11 @@ function AdminOrderDetails() {
                 status === "cancelled"
               }
               onClick={() => {
-                const confirmCancel =
-                  window.confirm(
-                    "Are you sure you want to cancel this order?"
-                  );
+                const confirmed = window.confirm(
+                  "Are you sure you want to cancel this order?"
+                );
 
-                if (confirmCancel) {
+                if (confirmed) {
                   updateStatus("cancelled");
                 }
               }}
@@ -318,339 +272,197 @@ function AdminOrderDetails() {
               <XCircle size={17} />
               CANCEL ORDER
             </button>
-
           </div>
-
         </section>
 
-        {/* DETAILS */}
-
         <section className="admin-order-details-grid">
-
-          {/* ORDER SUMMARY */}
-
           <div className="admin-order-detail-card">
-
             <div className="admin-order-detail-title">
-
               <div className="admin-order-detail-icon">
                 <Package size={20} />
               </div>
-
               <div>
                 <h2>Order Summary</h2>
                 <p>Basic order information</p>
               </div>
-
             </div>
 
             <div className="admin-order-info-list">
-
               <div>
                 <span>Order ID</span>
-
-                <strong>
-                  #{order._id}
-                </strong>
+                <strong>#{order._id}</strong>
               </div>
-
               <div>
                 <span>Order Date</span>
-
-                <strong>
-                  {formatDate(
-                    order.createdAt
-                  )}
-                </strong>
+                <strong>{formatDate(order.createdAt)}</strong>
               </div>
-
               <div>
                 <span>Payment</span>
-
                 <strong>
-                  {order.paymentMethod?.toUpperCase() ||
-                    "COD"}
+                  {order.paymentMethod?.toUpperCase() || "COD"}
                 </strong>
               </div>
-
               <div>
                 <span>Payment Status</span>
-
-                <strong>
-                  {order.paymentStatus || "pending"}
-                </strong>
+                <strong>{order.paymentStatus || "pending"}</strong>
               </div>
-
             </div>
-
           </div>
 
-          {/* CUSTOMER */}
-
           <div className="admin-order-detail-card">
-
             <div className="admin-order-detail-title">
-
               <div className="admin-order-detail-icon">
                 <User size={20} />
               </div>
-
               <div>
                 <h2>Customer</h2>
                 <p>Customer contact details</p>
               </div>
-
             </div>
 
             <div className="admin-customer-details">
-
               <div>
                 <User size={17} />
-
-                <span>
-                  {order.customer?.fullName ||
-                    "N/A"}
-                </span>
+                <span>{order.customer?.fullName || "N/A"}</span>
               </div>
-
               <div>
                 <Phone size={17} />
-
-                <span>
-                  {order.customer?.phone ||
-                    "N/A"}
-                </span>
+                <span>{order.customer?.phone || "N/A"}</span>
               </div>
-
               <div>
                 <Mail size={17} />
-
-                <span>
-                  {order.customer?.email ||
-                    "N/A"}
-                </span>
+                <span>{order.customer?.email || "N/A"}</span>
               </div>
-
             </div>
-
           </div>
 
-          {/* ADDRESS */}
-
           <div className="admin-order-detail-card">
-
             <div className="admin-order-detail-title">
-
               <div className="admin-order-detail-icon">
                 <MapPin size={20} />
               </div>
-
               <div>
                 <h2>Delivery Address</h2>
                 <p>Customer shipping address</p>
               </div>
-
             </div>
 
             <div className="admin-address-box">
-
+              <p>{order.shippingAddress?.address || "N/A"}</p>
               <p>
-                {order.shippingAddress?.address ||
-                  "N/A"}
-              </p>
-
-              <p>
-                {order.shippingAddress?.city ||
-                  ""}
+                {order.shippingAddress?.city || ""}
                 {order.shippingAddress?.city &&
                 order.shippingAddress?.state
                   ? ", "
                   : ""}
-                {order.shippingAddress?.state ||
-                  ""}
+                {order.shippingAddress?.state || ""}
               </p>
-
-              <p>
-                {order.shippingAddress?.pincode ||
-                  ""}
-              </p>
-
+              <p>{order.shippingAddress?.pincode || ""}</p>
             </div>
-
           </div>
 
-          {/* PAYMENT */}
-
           <div className="admin-order-detail-card">
-
             <div className="admin-order-detail-title">
-
               <div className="admin-order-detail-icon">
                 <CreditCard size={20} />
               </div>
-
               <div>
                 <h2>Payment</h2>
                 <p>Payment information</p>
               </div>
-
             </div>
 
             <div className="admin-payment-box">
-
               <div>
                 <span>Payment Method</span>
-
                 <strong>
-                  {order.paymentMethod?.toUpperCase() ||
-                    "COD"}
+                  {order.paymentMethod?.toUpperCase() || "COD"}
                 </strong>
               </div>
-
               <div>
                 <span>Payment Status</span>
-
-                <strong>
-                  {order.paymentStatus ||
-                    "pending"}
-                </strong>
+                <strong>{order.paymentStatus || "pending"}</strong>
               </div>
-
             </div>
-
           </div>
 
-          {/* PRODUCTS */}
-
           <div className="admin-order-products-card">
-
             <div className="admin-order-detail-title">
-
               <div className="admin-order-detail-icon">
                 <ShoppingBag size={20} />
               </div>
-
               <div>
                 <h2>Ordered Products</h2>
-
-                <p>
-                  {order.items?.length || 0} product(s)
-                </p>
+                <p>{order.items?.length || 0} product(s)</p>
               </div>
-
             </div>
 
             <div className="admin-order-items">
-
-              {order.items?.map(
-                (item, index) => (
-
-                  <div
-                    className="admin-order-item"
-                    key={
-                      item._id || index
-                    }
-                  >
-
-                    <div className="admin-order-item-image">
-
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                      />
-
-                    </div>
-
-                    <div className="admin-order-item-info">
-
-                      <h3>
-                        {item.name}
-                      </h3>
-
-                      <p>
-                        Quantity:{" "}
-                        {item.quantity}
-                      </p>
-
-                      <span>
-                        ₹{item.price} ×{" "}
-                        {item.quantity}
-                      </span>
-
-                    </div>
-
-                    <strong className="admin-order-item-total">
-                      ₹
-                      {(
-                        item.price *
-                        item.quantity
-                      ).toLocaleString(
-                        "en-IN"
-                      )}
-                    </strong>
-
+              {order.items?.map((item, index) => (
+                <div
+                  className="admin-order-item"
+                  key={item._id || index}
+                >
+                  <div className="admin-order-item-image">
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                    />
                   </div>
-                )
-              )}
 
+                  <div className="admin-order-item-info">
+                    <h3>{item.name}</h3>
+                    <p>Quantity: {item.quantity}</p>
+                    <span>
+                      ₹{item.price} × {item.quantity}
+                    </span>
+                  </div>
+
+                  <strong className="admin-order-item-total">
+                    ₹
+                    {(
+                      Number(item.price || 0) *
+                      Number(item.quantity || 0)
+                    ).toLocaleString("en-IN")}
+                  </strong>
+                </div>
+              ))}
             </div>
-
           </div>
 
-          {/* TOTAL */}
-
           <div className="admin-order-total-card">
-
             <div>
               <span>Subtotal</span>
-
               <strong>
-                ₹
-                {Number(
-                  order.subtotal || 0
-                ).toLocaleString(
-                  "en-IN"
-                )}
+                ₹{Number(order.subtotal || 0).toLocaleString("en-IN")}
               </strong>
             </div>
 
             <div>
               <span>Delivery Charge</span>
-
               <strong>
                 ₹
-                {Number(
-                  order.deliveryCharge || 0
-                ).toLocaleString(
+                {Number(order.deliveryCharge || 0).toLocaleString(
                   "en-IN"
                 )}
               </strong>
             </div>
 
             <div className="admin-order-grand-total">
-
-              <span>
-                Total Amount
-              </span>
-
+              <span>Total Amount</span>
               <strong>
                 ₹
-                {Number(
-                  order.totalAmount || 0
-                ).toLocaleString(
+                {Number(order.totalAmount || 0).toLocaleString(
                   "en-IN"
                 )}
               </strong>
-
             </div>
-
           </div>
-
         </section>
-
       </main>
     </div>
   );
 }
 
 export default AdminOrderDetails;
+```
