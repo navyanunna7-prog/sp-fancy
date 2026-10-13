@@ -20,7 +20,7 @@ function Home() {
         <div className="hero-content">
 
           <p className="hero-label">
-            WELCOME TO FANCY STORE
+            WELCOME TO SP FANCY
           </p>
 
           <h1>
