@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -22,20 +23,12 @@ function AdminAddProduct() {
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
-    const {
-      name,
-      value,
-      type,
-      checked,
-    } = e.target;
+    const { name, value, type, checked } = e.target;
 
-    setFormData({
-      ...formData,
-      [name]:
-        type === "checkbox"
-          ? checked
-          : value,
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
 
     setError("");
   };
@@ -47,8 +40,18 @@ function AdminAddProduct() {
       setLoading(true);
       setError("");
 
+      const token =
+        localStorage.getItem("token") ||
+        localStorage.getItem("adminToken") ||
+        localStorage.getItem("spFancyToken");
+
+      if (!token) {
+        setError("Admin session missing. Please log in again.");
+        return;
+      }
+
       await axios.post(
-  "https://sp-fancy-backend-1.onrender.com/api/products",
+        "https://sp-fancy-backend-1.onrender.com/api/products",
         {
           name: formData.name.trim(),
           category: formData.category,
@@ -57,24 +60,29 @@ function AdminAddProduct() {
             ? Number(formData.oldPrice)
             : null,
           image: formData.image.trim(),
-          description:
-            formData.description.trim(),
+          description: formData.description.trim(),
           stock: Number(formData.stock),
           featured: formData.featured,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       navigate("/admin/products");
     } catch (error) {
-      console.error(
-        "Add product error:",
-        error
-      );
+      console.error("Add product error:", error);
 
-      setError(
-        error.response?.data?.message ||
-          "Unable to add product. Please try again."
-      );
+      if (error.response?.status === 401) {
+        setError("Admin authentication failed. Please log in again.");
+      } else {
+        setError(
+          error.response?.data?.message ||
+            "Unable to add product. Please try again."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -82,83 +90,44 @@ function AdminAddProduct() {
 
   return (
     <div className="admin-layout">
-
       <AdminSidebar />
 
       <main className="admin-main">
-
         <header className="admin-main-header">
-
           <div>
-
-            <p className="section-label">
-              SP FANCY • PRODUCTS
-            </p>
-
+            <p className="section-label">SP FANCY • PRODUCTS</p>
             <h1>Add Product</h1>
-
-            <p>
-              Add a new product to your store
-              catalogue.
-            </p>
-
+            <p>Add a new product to your store catalogue.</p>
           </div>
 
           <button
             type="button"
             className="admin-back-btn"
-            onClick={() =>
-              navigate("/admin/products")
-            }
+            onClick={() => navigate("/admin/products")}
           >
             <ArrowLeft size={16} />
             BACK TO PRODUCTS
           </button>
-
         </header>
 
-
         {error && (
-          <div className="admin-page-error">
-            {error}
-          </div>
+          <div className="admin-page-error">{error}</div>
         )}
 
-
-        <form
-          className="admin-product-form"
-          onSubmit={handleSubmit}
-        >
-
+        <form className="admin-product-form" onSubmit={handleSubmit}>
           <div className="admin-form-title">
-
             <div className="admin-form-title-icon">
               <ImagePlus size={21} />
             </div>
-
             <div>
               <h2>Product Information</h2>
-
-              <p>
-                Enter the details of your new
-                product.
-              </p>
+              <p>Enter the details of your new product.</p>
             </div>
-
           </div>
 
-
           <div className="admin-form-grid">
-
-
-            {/* PRODUCT NAME */}
-
             <div className="admin-form-group full-width">
-
-              <label>
-                PRODUCT NAME
-              </label>
-
+              <label>PRODUCT NAME</label>
               <input
                 type="text"
                 name="name"
@@ -167,58 +136,27 @@ function AdminAddProduct() {
                 onChange={handleChange}
                 required
               />
-
             </div>
 
-
-            {/* CATEGORY */}
-
             <div className="admin-form-group">
-
-              <label>
-                CATEGORY
-              </label>
-
+              <label>CATEGORY</label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
                 required
               >
-
-                <option value="jewellery">
-                  Jewellery
-                </option>
-
-                <option value="slippers">
-                  Slippers
-                </option>
-
-                <option value="handbags">
-                  Handbags
-                </option>
-
-                <option value="accessories">
-                  Accessories
-                </option>
-
+                <option value="jewellery">Jewellery</option>
+                <option value="slippers">Slippers</option>
+                <option value="handbags">Handbags</option>
+                <option value="accessories">Accessories</option>
               </select>
-
             </div>
 
-
-            {/* PRICE */}
-
             <div className="admin-form-group">
-
-              <label>
-                PRICE
-              </label>
-
+              <label>PRICE</label>
               <div className="admin-input-prefix">
-
                 <span>₹</span>
-
                 <input
                   type="number"
                   name="price"
@@ -228,24 +166,13 @@ function AdminAddProduct() {
                   min="0"
                   required
                 />
-
               </div>
-
             </div>
 
-
-            {/* OLD PRICE */}
-
             <div className="admin-form-group">
-
-              <label>
-                OLD PRICE
-              </label>
-
+              <label>OLD PRICE</label>
               <div className="admin-input-prefix">
-
                 <span>₹</span>
-
                 <input
                   type="number"
                   name="oldPrice"
@@ -254,20 +181,11 @@ function AdminAddProduct() {
                   onChange={handleChange}
                   min="0"
                 />
-
               </div>
-
             </div>
 
-
-            {/* STOCK */}
-
             <div className="admin-form-group">
-
-              <label>
-                STOCK QUANTITY
-              </label>
-
+              <label>STOCK QUANTITY</label>
               <input
                 type="number"
                 name="stock"
@@ -277,18 +195,10 @@ function AdminAddProduct() {
                 min="0"
                 required
               />
-
             </div>
 
-
-            {/* IMAGE URL */}
-
             <div className="admin-form-group full-width">
-
-              <label>
-                PRODUCT IMAGE URL
-              </label>
-
+              <label>PRODUCT IMAGE URL</label>
               <input
                 type="url"
                 name="image"
@@ -297,23 +207,13 @@ function AdminAddProduct() {
                 onChange={handleChange}
                 required
               />
-
               <small className="admin-input-help">
-                Use a direct image URL for the
-                product photo.
+                Use a direct image URL for the product photo.
               </small>
-
             </div>
 
-
-            {/* DESCRIPTION */}
-
             <div className="admin-form-group full-width">
-
-              <label>
-                DESCRIPTION
-              </label>
-
+              <label>DESCRIPTION</label>
               <textarea
                 name="description"
                 placeholder="Write a short description about this product..."
@@ -321,49 +221,27 @@ function AdminAddProduct() {
                 onChange={handleChange}
                 rows="5"
               />
-
             </div>
 
-
-            {/* FEATURED */}
-
             <label className="admin-featured-checkbox">
-
               <input
                 type="checkbox"
                 name="featured"
                 checked={formData.featured}
                 onChange={handleChange}
               />
-
               <div>
-
-                <strong>
-                  Featured Product
-                </strong>
-
-                <span>
-                  Show this product in featured
-                  sections.
-                </span>
-
+                <strong>Featured Product</strong>
+                <span>Show this product in featured sections.</span>
               </div>
-
             </label>
-
           </div>
 
-
-          {/* ACTIONS */}
-
           <div className="admin-form-actions">
-
             <button
               type="button"
               className="admin-cancel-btn"
-              onClick={() =>
-                navigate("/admin/products")
-              }
+              onClick={() => navigate("/admin/products")}
             >
               CANCEL
             </button>
@@ -373,21 +251,12 @@ function AdminAddProduct() {
               className="admin-save-btn"
               disabled={loading}
             >
-
               <Save size={16} />
-
-              {loading
-                ? "ADDING PRODUCT..."
-                : "ADD PRODUCT"}
-
+              {loading ? "ADDING PRODUCT..." : "ADD PRODUCT"}
             </button>
-
           </div>
-
         </form>
-
       </main>
-
     </div>
   );
 }
