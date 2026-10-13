@@ -41,7 +41,7 @@ function AdminOrderDetails() {
       }
 
       const response = await axios.get(
-        `http://localhost:5000/api/admin/orders/${id}`,
+        `https://sp-fancy-backend-1.onrender.com/api/admin/orders/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -92,7 +92,7 @@ function AdminOrderDetails() {
       );
 
       const response = await axios.put(
-        `http://localhost:5000/api/admin/orders/${id}/status`,
+        `https://sp-fancy-backend-1.onrender.com/api/admin/orders/${id}`,
         {
           orderStatus: newStatus,
         },
