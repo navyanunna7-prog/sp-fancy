@@ -37,7 +37,7 @@ function AdminEditProduct() {
         setError("");
 
         const response = await axios.get(
-          `http://localhost:5000/api/products/${id}`
+          `https://sp-fancy-backend-1.onrender.com/api/products/${id}`
         );
 
         const product = response.data;
@@ -98,8 +98,8 @@ function AdminEditProduct() {
       setSaving(true);
       setError("");
 
-      await axios.put(
-        `http://localhost:5000/api/products/${id}`,
+      await axios.put
+        `https://sp-fancy-backend-1.onrender.com/api/products/${id}`,
         {
           name: formData.name.trim(),
           category: formData.category,
