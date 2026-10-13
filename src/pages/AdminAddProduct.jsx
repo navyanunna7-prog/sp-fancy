@@ -48,7 +48,7 @@ function AdminAddProduct() {
       setError("");
 
       await axios.post(
-        "http://localhost:5000/api/products",
+  "https://sp-fancy-backend-1.onrender.com/api/products",
         {
           name: formData.name.trim(),
           category: formData.category,
