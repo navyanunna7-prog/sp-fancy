@@ -18,7 +18,7 @@ import {
 import AdminSidebar from "../components/AdminSidebar";
 import "./AdminProducts.css";
 
-const API_URL = "http://localhost:5000/api/products";
+const API_URL = "https://sp-fancy-backend-1.onrender.com/api/products";
 
 const categories = [
   "All Categories",
